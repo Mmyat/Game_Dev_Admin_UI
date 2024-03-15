@@ -1,5 +1,5 @@
 import { useState,useEffect} from "react";
-import { Link} from 'react-router-dom';
+import {useParams,Link,useNavigate} from 'react-router-dom';
 import {Tag,Space,Table,Modal,Button,Typography,Flex} from "antd";
 import { DeleteFilled,PlusOutlined} from "@ant-design/icons";
 import CreateBundle from "../components/CreateBundle";
@@ -73,7 +73,10 @@ const Home = () => {
     });
     setUsers(updatedUsers);
   };
-
+  const {token}=useParams();
+  const storeToken =async ()=>{
+    await localStorage.setItem("token", token)
+  }
   const [loading, setLoading] = useState(false);
   const [bundleList, setBundleList] = useState([]);
   const [visible, setVisible] = useState(false);
@@ -82,38 +85,54 @@ const Home = () => {
   const [hasMoreData, setHasMoreData] = useState(true);
   const handleOpenModal = () => setVisible(true);
   const handleCloseModal = () => setVisible(false);
-
+  const navigate = useNavigate();
   const getBundles = async()=>{
-    const {data} = await axios.get(`http://localhost:3000/bundle/listBundle/${currentPage}`)
-    const bundles = data
-    console.log(bundles);
-    setBundleList(bundles)
-    setHasMoreData(data.total > currentPage * pageSize);
-  }
+    const token = localStorage.getItem("token");
+    console.log("token",token);
+    if(token){
+      const response = await axios.get(`http://localhost:3000/bundle/listBundle/${currentPage}`,{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }) 
+      console.log(response.status);
+      if(response.status == 200){
+        // navigate('/unauthorized')
+        const {data} = response;
+        console.log("data",data);
+        setBundleList(data)     
+        setHasMoreData(data.total > currentPage * pageSize);     
+      }else{
+        navigate('/unauthorized')
+      }     
+    }else{
+      navigate('/unauthorized')
+    }
+  }  
   useEffect(() => {
+    storeToken();
     getBundles();
   },[currentPage, pageSize])
-  const handlePageChange = (page, pageSize) => {
+  const handlePageChange = (page,pageSize) => {
     setCurrentPage(page);
-    setPageSize(pageSize); // Update page and size if needed
+    setPageSize(pageSize);
   };
   return (
-    <>
-      <Flex vertical='true' justify="center" style={{ marginTop: 30,padding:20}}>
-        <Flex horizontal='true' justify="space-between">
-          <Typography.Title level={4}>Bundles</Typography.Title>
-          <Button type="primary" onClick={handleOpenModal}>
+    <Flex vertical='true' align="center" justify='center' >
+      <Flex vertical='true' justify="center" style={{ marginTop:2}}>
+        <Typography.Title level={3}>Bundles</Typography.Title>
+        <Flex justify="flex-end" style={{margin :'5px', marginInlineStart:'1px'}}>
+          <Button justify="flex-end" type="primary" onClick={handleOpenModal}>
             New Bundle
-            <PlusOutlined style={{ fontSize: '20px'}}/>
+            <PlusOutlined style={{marginLeft: 8}}/>
           </Button>
         </Flex>
-        <Table dataSource={bundleList} columns={columns} pagination={{onChange: handlePageChange, current: currentPage,pageSize:8,nextButtonDisabled: !hasMoreData}} ></Table>
-        {/* Popup input form */}
-        <Modal title="New Bundle" open={visible} onCancel={handleCloseModal}>
+        <Table dataSource={bundleList} columns={columns} pagination={{onChange: handlePageChange, current: currentPage,pageSize:8,nextButtonDisabled: !hasMoreData}} style={{marginTop:5,padding:10}}></Table>
+        <Modal  title="New Bundle" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
           <CreateBundle onClose={handleCloseModal}/>
         </Modal>
       </Flex>
-    </>
+    </Flex>
   );
 };
 

@@ -1,14 +1,15 @@
 import {Tag,Flex,Button,Table,Typography,Modal} from "antd";
-import { DeleteFilled,PlusCircleFilled} from "@ant-design/icons";
-import {useEffect,useState} from 'react'
-import {useParams} from 'react-router-dom';
+import {PlusOutlined} from "@ant-design/icons";
+import {useEffect,useState} from 'react';
+import {useParams,useNavigate} from 'react-router-dom';
 import axios from "axios";
 import CreatePatch from "./CreatePatch";
 const PatchesTable = ({data}) => {
     const columns = [
         {
           title: "SrNo",
-          key: 'index', render: (value, record, index) =>index + 1 },
+          key: 'index', render: (value, record, index) =>index + 1 
+        },
         {
           title: "Date",
           dataIndex: "update_dateTime",
@@ -41,30 +42,38 @@ const PatchesTable = ({data}) => {
     ]
     //update_dateTime
     const {id}=useParams();
-    console.log("id",id);
     const [visible, setVisible] = useState(false);
     const handleOpenModal = () => setVisible(true);
     const handleCloseModal = () => setVisible(false);
     const [patches,setPatches] = useState([])
+    const navigate = useNavigate();
     const getPatchesByBunddleId =async (id)=>{
-      const {data}= await axios.get(`http://localhost:3000/patch/patchByBundle_Id/${id}`)
-      console.log(data);
-      setPatches(data)
+      const token = localStorage.getItem("token");
+      if(token){
+        const {data}= await axios.get(`http://localhost:3000/patch/patchByBundle_Id/${id}`,{
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token in Authorization header
+          },
+        })
+        setPatches(data)
+      }else{
+        navigate('/unauthorized')
+      }
     }
     useEffect(() => {
       getPatchesByBunddleId(id)
-    }, [patches])
+    }, [])
     return (
-        <Flex vertical='true' justify='center' style={{ marginTop: 20,padding:20}}>
+        <Flex vertical='true' justify='center' style={{ marginTop: 20,marginBottom: 20,width: "80vh",padding:10}}>
           <Flex horizontal='true' justify="space-between">
             <Typography.Title level={4}>Patches</Typography.Title>
-            <Button onClick={handleOpenModal}>
+            <Button type="primary" onClick={handleOpenModal}>
               New Patch
-              <PlusCircleFilled style={{ marginLeft: 2}}/>
+              <PlusOutlined style={{marginLeft:8}}/>
             </Button>
           </Flex>
           <Table dataSource={patches} columns={columns} pagination={{ pageSize: 4 }}></Table>
-          <Modal title="New Bundle" open={visible} onCancel={handleCloseModal}>
+          <Modal title="New Patch" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
             <CreatePatch onClose={handleCloseModal}/>
           </Modal>
         </Flex>

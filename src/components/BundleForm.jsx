@@ -1,9 +1,8 @@
-import { Form, Input, Typography} from 'antd';
+import { Flex, Form, Input, Typography} from 'antd';
 const BundleForm = ({data}) => {
     const {name,type,prod_patch_id,dev_patch_id,orientation,index_fileName} = data;
-    return (
-        <Form layout="vertical" className='items-center w-2/3 md:w-2/5 mx-auto'>
-            <Typography.Title level={4}>{name}</Typography.Title>
+    return (      
+        <Form layout="vertical" vertical='true' align="center" justify='center' style={{marginBottom: 20,width: "50vh"}}>
             <Form.Item label="Name" className='mb-1'>
                 <Input value={name} readOnly /> 
             </Form.Item>
