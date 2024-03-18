@@ -4,7 +4,7 @@ import {useEffect,useState} from 'react';
 import {useParams,useNavigate} from 'react-router-dom';
 import axios from "axios";
 import CreatePatch from "./CreatePatch";
-const PatchesTable = ({data}) => {
+const PatchesTable = (data) => {
     const columns = [
         {
           title: "SrNo",
@@ -40,8 +40,8 @@ const PatchesTable = ({data}) => {
           ),
         },
     ]
-    //update_dateTime
-    const {id}=useParams();
+    //
+    const {id}= data
     const [visible, setVisible] = useState(false);
     const handleOpenModal = () => setVisible(true);
     const handleCloseModal = () => setVisible(false);
@@ -74,7 +74,7 @@ const PatchesTable = ({data}) => {
           </Flex>
           <Table dataSource={patches} columns={columns} pagination={{ pageSize: 4 }}></Table>
           <Modal title="New Patch" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
-            <CreatePatch onClose={handleCloseModal}/>
+            <CreatePatch id={id} onClose={handleCloseModal}/>
           </Modal>
         </Flex>
     )

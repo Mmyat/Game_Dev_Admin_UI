@@ -2,8 +2,10 @@ import {useEffect,useState} from 'react';
 import {Form,Input,Button,Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import axios from "axios";
-const CreatePatch = () => {
-  const [fileList, setFileList] = useState([]);
+const CreatePatch = (data) => {
+  const [file, setFile] = useState([]);
+  const [form] = Form.useForm();
+  const [base64, setBase64] = useState(null);
   //
   const generateId=()=>{
     const date = new Date();
@@ -16,15 +18,16 @@ const CreatePatch = () => {
   
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
-  const Patch_Id= generateId();
+  const patch_id= generateId();
+  const bundle_id = data.id
   //
-  const onChange = (info) => {
-    setFileList(info.fileList);
-
-    if (info.file.status === 'done') {
-      console.log(`${info.file.name} uploaded successfully`);
-    } else if (info.file.status === 'error') {
-      console.log(`${info.file.name} upload failed`);
+  const onChange = (e) => {
+    setFile(e.file);
+    console.log(e.file.status);
+    if (e.file.status === 'done') {
+      console.log(`${e.file.name} uploaded successfully`);
+    } else if (e.file.status === 'error') {
+      console.log(`${e.file.name} upload failed`);
     }
   };
   //
@@ -38,12 +41,26 @@ const CreatePatch = () => {
     return true; // Allow upload if it's a zip file
   };
   //
-  const handleUpload = async () => {
+  const handleUpload = async (values) => {
+    const {patch_id, remark, file}= values
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setBase64(base64String);
+        console.log(base64);
+      }
+    }
+    
     const formData = new FormData();
-    fileList.forEach((file) => formData.append('file', file));
+    formData.append('bundle_id', bundle_id);
+    formData.append('patch_id', patch_id);
+    formData.append('remark', remark);
+    formData.append('file_PatchDecode', file); 
 
     try {
-      const response = await axios.post('/your-api-endpoint', formData, {
+      const response = await axios.post('http://localhost:3000/patch/createPatch', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -62,25 +79,23 @@ const CreatePatch = () => {
   };
 
   return (
-    <Form layout="vertical" name="basic"
-    labelCol={{ span: 8 }}
-    wrapperCol={{ span: 16 }}
-    style={{ maxWidth: 600,marginTop: 8 }}
-    initialValues={{ remember: true }}
-    autoComplete="off">            
+    <Form layout="vertical" name="basic" form={form} onFinish={handleUpload} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} style={{ maxWidth: 600,marginTop: 8 }} initialValues={{ remember: true }} autoComplete="off">            
         <Form.Item label="">
-          <Input addonBefore="Patch_Id" value={Patch_Id}/>
+          <Input addonBefore="Patch_Id" value={patch_id} name="patch_id"/>
+        </Form.Item>
+        <Form.Item label="remark">
+          <Input name="remark"/>
         </Form.Item>
         <Form.Item label="File Upload">
-          <Upload name="file" multiple={false} fileList={fileList} onChange={onChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
+          <Upload name="file" multiple={false} file={file} onChange={onChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
             <Button icon={<UploadOutlined/>}>Click to upload</Button>
           </Upload>
         </Form.Item>
         <Form.Item>
-          <Button ghost type="primary" htmlType="submit">
+          <Button ghost type="primary">
             Cancel
           </Button>
-          <Button type="primary" htmlType="submit" onClick={handleUpload} disabled={fileList.length === 0}>
+          <Button type="primary" htmlType="submit" disabled={file.length === 0}>
             Save
           </Button>
         </Form.Item>

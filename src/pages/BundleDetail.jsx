@@ -39,7 +39,7 @@ const BundleDetail = () => {
       <Flex vertical='true' align='center' justify='center'>
         <Typography.Title level={4}>Bundle Details</Typography.Title>
         <BundleForm data={bundle}/>
-        <PatchesTable data={id}/>
+        <PatchesTable id={id}/>
       </Flex>    
     </Flex>
   )
