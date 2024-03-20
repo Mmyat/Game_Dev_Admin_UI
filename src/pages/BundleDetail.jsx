@@ -17,7 +17,8 @@ const BundleDetail = () => {
           Authorization: `Bearer ${token}`,
         },
       })
-      const {data} = response;
+      const {data} = response.data;
+      console.log("data",data);
       setBundle(data)
     }else{
       navigate('/unauthorized')
@@ -30,11 +31,11 @@ const BundleDetail = () => {
 
   useEffect(() => {
     getBundleById(id)
-  }, [bundle])
+  }, [])
   return (
     <Flex vertical='true' justify='center'>
-      <Flex justify="flex-start" style={{margin :'30px', marginInlineStart:'1px'}}>
-        <Button ghost align='flex-start' type="primary" icon={<RollbackOutlined/>} onClick={handleBackClick} style={{marginLeft: '0px',marginTop : '0px'}}>Back</Button>        
+      <Flex justify="flex-start">
+        <Button ghost align='flex-start' type="primary" icon={<RollbackOutlined/>} onClick={handleBackClick} style={{marginLeft: '40px',marginTop : '30px'}}>Back</Button>        
       </Flex>
       <Flex vertical='true' align='center' justify='center'>
         <Typography.Title level={4}>Bundle Details</Typography.Title>

@@ -1,11 +1,12 @@
 import {useEffect,useState} from 'react';
 import {Form,Input,Button,Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import axios from "axios";
-const CreatePatch = (data) => {
-  const [file, setFile] = useState([]);
+const CreatePatch = ({id,onClose,onSave}) => {
+  const [file, setFile] = useState(null);
   const [form] = Form.useForm();
   const [base64, setBase64] = useState(null);
+  const [remark, setRemark] = useState('');
+  const [patchId, setPatchId] = useState(null);
   //
   const generateId=()=>{
     const date = new Date();
@@ -15,87 +16,94 @@ const CreatePatch = (data) => {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const seconds = date.getSeconds().toString().padStart(2, '0');
-  
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
-  const patch_id= generateId();
-  const bundle_id = data.id
-  //
-  const onChange = (e) => {
-    setFile(e.file);
-    console.log(e.file.status);
-    if (e.file.status === 'done') {
-      console.log(`${e.file.name} uploaded successfully`);
-    } else if (e.file.status === 'error') {
-      console.log(`${e.file.name} upload failed`);
-    }
-  };
+
   //
   const onBeforeUpload = (file) => {
     if (!file.type.includes('zip')) {
-      // messageApi.open({error:"Only ZIP files are allowed!"})
-      // setTimeout(messageApi.destroy, 2500);
       console.log('Only ZIP files are allowed!');
-      return Upload.LIST_IGNORE; // Prevent upload if not a zip file
+      return Upload.LIST_IGNORE;
     }
-    return true; // Allow upload if it's a zip file
+    return true;
   };
-  //
-  const handleUpload = async (values) => {
-    const {patch_id, remark, file}= values
-    if (file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setBase64(base64String);
-        console.log(base64);
-      }
-    }
-    
-    const formData = new FormData();
-    formData.append('bundle_id', bundle_id);
-    formData.append('patch_id', patch_id);
-    formData.append('remark', remark);
-    formData.append('file_PatchDecode', file); 
 
+  const getBase64 =async (file, cb) => {
+    let reader = new FileReader();
+    reader.readAsDataURL(file.originFileObj);
+    reader.onloadend = () => {       
+      const base64String = reader.result;
+      console.log("64:",base64String);
+      setBase64(base64String);
+    }
+    reader.onerror = function (error) {
+        console.log('Error: ', error);
+    };
+  }
+
+  //handleFileChange
+  const handleFileChange = async(event)=>{
+    setFile(event.file)
+    const reader = new FileReader();
+    console.log("file:",file);
+    console.log("reader",reader);
+    if (file) {    
+      getBase64(file, (result) => {
+        console.log('result',result);
+     });
+    }
+  }
+  //
+  const handleUpload = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/patch/createPatch', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log('API response:', response.data); // Process API response
-      setFileList([]); // Clear file list after successful upload
-      console.log('Files uploaded successfully!');
-      // messageApi.open("Files uploaded successfully!")
-      // setTimeout(messageApi.destroy, 2500);
+      console.log(base64);
+      const data = {
+        bundle_id:id,
+        patch_id : patchId,
+        remark,
+        file_PatchDecode: base64,
+      };
+      onSave(data)
+      setRemark('');
+      setFile(null);
     } catch (error) {
       console.error('Upload error:', error);
-      // message.error('Upload failed!');
       console.log("Upload failed!")
-      // setTimeout(messageApi.destroy, 2500);
     }
   };
 
+  //wrapperCol={{ offset: 13, span: 16}}
+  const formItemLayout = {
+    labelCol: {
+      xs: { span: 28 },
+      sm: { span: 6 },
+    },
+    wrapperCol: {
+      xs: { span: 28 },
+      sm: { span: 18 },
+    },
+  };
+  useEffect(() => {
+    setPatchId(generateId());
+  }, [ ]);
   return (
-    <Form layout="vertical" name="basic" form={form} onFinish={handleUpload} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} style={{ maxWidth: 600,marginTop: 8 }} initialValues={{ remember: true }} autoComplete="off">            
+    <Form layout="vertical" name="basic" form={form} justify='center' onFinish={handleUpload} {...formItemLayout} style={{ maxWidth: 600}} initialValues={{ remember: true }} autoComplete="off">            
         <Form.Item label="">
-          <Input addonBefore="Patch_Id" value={patch_id} name="patch_id"/>
+          <Input addonBefore="Patch_Id" value={patchId} onChange={(e) => setPatchId(e.target.value)} name="patch_id"/>
         </Form.Item>
         <Form.Item label="remark">
-          <Input name="remark"/>
+          <Input name="remark" value={remark} onChange={(e) => setRemark(e.target.value)}/>
         </Form.Item>
         <Form.Item label="File Upload">
-          <Upload name="file" multiple={false} file={file} onChange={onChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
+          <Upload name="file" multiple={false} file={file} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
             <Button icon={<UploadOutlined/>}>Click to upload</Button>
           </Upload>
         </Form.Item>
-        <Form.Item>
-          <Button ghost type="primary">
+        <Form.Item wrapperCol={{ offset: 11, span: 8}}>
+          <Button ghost type="primary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="primary" htmlType="submit" disabled={file.length === 0}>
+          <Button type="primary" htmlType="submit" disabled={file=== null} style={{marginLeft:"8px"}}>
             Save
           </Button>
         </Form.Item>

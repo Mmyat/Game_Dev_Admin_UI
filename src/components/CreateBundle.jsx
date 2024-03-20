@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {Form,Input,Button,Select} from 'antd';
-import axios from "axios";
-const CreateBundle = ({onClose}) => {
+const CreateBundle = ({onClose,onSave}) => {
   const [formData, setFormData] = useState({
     name: '',
     type: "Select Types",
@@ -9,28 +8,37 @@ const CreateBundle = ({onClose}) => {
     orientation : '',
     index_fileName : ''
   });
-
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
   const handleSelectChange = (value) => {
     setFormData({ ...formData, type: value });
   };
+  const handleClose = ()=>{
+    onClose();
+    setFormData({
+      name: '',
+      type: "Select Types",
+      prod_patch_id : '',
+      orientation : '',
+      index_fileName : ''
+    })
+  }
   const options = [
     { value: "web", label: "Web" },
     { value: "cocos", label: "Cocos" },
   ];
   const handleSubmit =async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    console.log('Form submitted:', formData);
-    const response=await axios.post("http://localhost:3000/bundle/createBundle",formData,{
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    onClose(); // Close the form
-    setFormData({name: "",type : "Select Types"})
+    console.log(formData.index_fileName !=='');  
+      onSave(formData);
+      setFormData({
+        name: ' ',
+        type: "Select Types",
+        prod_patch_id : ' ',
+        orientation : ' ',
+        index_fileName : ' '
+      })
   };
   //
   const formItemLayout = {
@@ -46,13 +54,13 @@ const CreateBundle = ({onClose}) => {
 
   return (
       <Form {...formItemLayout} style={{ maxWidth: 600}}>            
-        <Form.Item label="Name" rules={[{required: true, message: 'Please enter your name!' }]}>
+        <Form.Item label="Name" rules={[{required: true, message: 'Please enter bundle name!'}]}>
           <Input name="name" value={formData.name} onChange={handleChange}/>
         </Form.Item>
-        <Form.Item label="Type">
+        <Form.Item label="Type" rules={[{required: true, message: 'Please select bundle type'}]}>
           <Select value={formData.type} onChange={handleSelectChange} options={options}/>
         </Form.Item>
-        <Form.Item label="Prod_Patch_Id">
+        <Form.Item label="Prod_Patch_Id" rules={[{required: true, message: 'Please enter prod_patch_id!'}]}>
           <Input name="prod_patch_id" value={formData.prod_patch_id} onChange={handleChange}/>
         </Form.Item>
         <Form.Item label="orientation">
@@ -62,7 +70,7 @@ const CreateBundle = ({onClose}) => {
           <Input name="index_fileName" value={formData.index_fileName} onChange={handleChange}/>
         </Form.Item>
         <Form.Item wrapperCol={{ offset: 13, span: 16}}>
-          <Button ghost type="primary" onClick={()=>onClose()}>
+          <Button ghost type="primary" onClick={handleClose}>
             Cancel
           </Button>
           <Button type="primary" htmlType="submit" onClick={handleSubmit} style={{marginLeft:"8px"}}>
