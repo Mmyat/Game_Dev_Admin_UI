@@ -18,7 +18,6 @@ const BundleDetail = () => {
         },
       })
       const {data} = response.data;
-      console.log("data",data);
       setBundle(data)
     }else{
       navigate('/unauthorized')

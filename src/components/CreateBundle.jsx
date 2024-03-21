@@ -30,7 +30,6 @@ const CreateBundle = ({onClose,onSave}) => {
   ];
   const handleSubmit =async (e) => {
     e.preventDefault();
-    console.log(formData.index_fileName !=='');  
       onSave(formData);
       setFormData({
         name: ' ',

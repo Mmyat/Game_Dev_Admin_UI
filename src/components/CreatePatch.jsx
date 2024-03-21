@@ -7,6 +7,7 @@ const CreatePatch = ({id,onClose,onSave}) => {
   const [base64, setBase64] = useState(null);
   const [remark, setRemark] = useState('');
   const [patchId, setPatchId] = useState(null);
+  const [showFile,setShowFile]= useState(true)
   //
   const generateId=()=>{
     const date = new Date();
@@ -18,7 +19,13 @@ const CreatePatch = ({id,onClose,onSave}) => {
     const seconds = date.getSeconds().toString().padStart(2, '0');
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
-
+  //
+  const handleClose = ()=>{
+    onClose()
+    setRemark('');
+    setFile(null);
+    setShowFile(!showFile)
+  }
   //
   const onBeforeUpload = (file) => {
     if (!file.type.includes('zip')) {
@@ -61,10 +68,12 @@ const CreatePatch = ({id,onClose,onSave}) => {
         bundle_id:id,
         patch_id : patchId,
         remark,
-        file_PatchDecode: base64,
+        file_Patch: base64,
       };
       onSave(data)
+      onClose()
       setRemark('');
+      setShowFile(!showFile)
       setFile(null);
     } catch (error) {
       console.error('Upload error:', error);
@@ -72,7 +81,6 @@ const CreatePatch = ({id,onClose,onSave}) => {
     }
   };
 
-  //wrapperCol={{ offset: 13, span: 16}}
   const formItemLayout = {
     labelCol: {
       xs: { span: 28 },
@@ -95,12 +103,12 @@ const CreatePatch = ({id,onClose,onSave}) => {
           <Input name="remark" value={remark} onChange={(e) => setRemark(e.target.value)}/>
         </Form.Item>
         <Form.Item label="File Upload">
-          <Upload name="file" multiple={false} file={file} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
+          <Upload name="file" onRemove={true} multiple={false} file={file} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
             <Button icon={<UploadOutlined/>}>Click to upload</Button>
           </Upload>
         </Form.Item>
         <Form.Item wrapperCol={{ offset: 11, span: 8}}>
-          <Button ghost type="primary" onClick={onClose}>
+          <Button ghost type="primary" onClick={handleClose}>
             Cancel
           </Button>
           <Button type="primary" htmlType="submit" disabled={file=== null} style={{marginLeft:"8px"}}>

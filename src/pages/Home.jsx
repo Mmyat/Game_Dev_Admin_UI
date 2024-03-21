@@ -76,7 +76,7 @@ const Home = () => {
   const [bundleList, setBundleList] = useState([]);
   const [visible, setVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12);
   const [hasMoreData, setHasMoreData] = useState(true);
   const handleOpenModal = () => setVisible(true);
   const handleCloseModal = () => setVisible(false);
@@ -99,6 +99,7 @@ const Home = () => {
     }
     return "";
   }
+  //09
   const getBundles = async()=>{
     const token = localStorage.getItem("token");
     if(token){
@@ -108,6 +109,7 @@ const Home = () => {
         },
       }) 
       const {data} = response.data;
+      console.log("bundles",data);
       if(response.data.code == 200){      
         const dataList = data.map(item => ({ ...item, key: item.id }))
         setBundleList(dataList)     
@@ -129,6 +131,7 @@ const Home = () => {
             Authorization: `Bearer ${token}`,
           },
         })
+        console.log(response.data);
         if(response.data.code == 200){ 
           setVisible(false)
           notification.success({
@@ -155,11 +158,20 @@ const Home = () => {
       })
     }
   } 
+  //
+  // useEffect(() => {
+  //   const handleResize = () => setWindowWidth(window.innerWidth);
+  //   window.addEventListener('resize', handleResize);
+  //   return () => window.removeEventListener('resize', handleResize);
+  // }, []);
+  //
+  const [calculatedWidth, setCalculatedWidth] = useState('')
+  //
   useEffect(() => {
-    window.addEventListener('resize',()=>setWindowWidth(`100%`))
-    window.removeEventListener('resize',()=>setWindowWidth(`100%`))
+    // const tableWidth = Math.min(windowWidth * 0.8, 800); // Max width of 800px
+    // setCalculatedWidth(`${tableWidth}px`);
     storeToken("AccessToken");
-    console.log(window.innerWidth);
+    // console.log(window.innerWidth);
     getBundles();
   },[windowWidth,currentPage, pageSize])
   const handlePageChange = (page,pageSize) => {
@@ -167,7 +179,7 @@ const Home = () => {
     setPageSize(pageSize);
   };
   return (
-    <Flex vertical='true' align="center" justify='center'>
+    <Flex vertical='true' align="center" justify='center' style={{width:'100%'}}>
       <Flex vertical='true' justify="center" style={{marginTop:2}}>
         <Typography.Title level={3}>Bundles</Typography.Title>
         <Flex justify="flex-end" style={{width: windowWidth,margin :'5px', marginInlineStart:'1px'}}>
@@ -176,7 +188,7 @@ const Home = () => {
             <PlusOutlined style={{marginLeft: 8}}/>
           </Button>
         </Flex>
-        <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:8,nextButtonDisabled: !hasMoreData}} style={{width: windowWidth,'@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
+        <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : 50,nextButtonDisabled: !hasMoreData}} style={{width: '100%','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
         <Modal  title="New Bundle" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
           <CreateBundle onClose={handleCloseModal} onSave={saveNewBundle}/>
         </Modal>
