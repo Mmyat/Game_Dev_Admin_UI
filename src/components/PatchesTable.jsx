@@ -27,6 +27,11 @@ const PatchesTable = (data) => {
           key: "remark",
         },
         {
+          title: "Enviroment",
+          dataIndex: "environment",
+          key: "environment",
+        },
+        {
           title: "Actions",
           dataIndex: "actions",
           key: "actions",
@@ -62,6 +67,7 @@ const PatchesTable = (data) => {
               message: 'delete Successfully!',
               description: 'Your data has been saved.',
             })
+            getPatchesByBunddleId(id);
             }else{
               throw error;
           }
@@ -85,6 +91,7 @@ const PatchesTable = (data) => {
     const handleCloseModal = () => setVisible(false);
     const [patches,setPatches] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
+    const [total, setTotal] = useState(0);
     const navigate = useNavigate();
     const getPatchesByBunddleId =async (id)=>{
       const token = localStorage.getItem("token");
@@ -94,16 +101,18 @@ const PatchesTable = (data) => {
             Authorization: `Bearer ${token}`,
           },
         })
-        const {data} = response.data;
-        // console.log("patshes",data);
-        setPatches(data)
+        const {list} = response.data.data;
+        const {total} = response.data.data;
+        console.log("patshes",list);
+        setPatches(list)
+        setTotal(total)
       }else{
         navigate('/unauthorized')
       }
     }
     const saveNewPatch=async(data)=>{
       try{
-        console.log(data);
+        console.log("data",data);
         if(data.bundle_id !== '' && data.patch_id !== '' && data.remark !== '' && data.file_PatchDecode !== ''){
           const token = localStorage.getItem("token");
           const response = await axios.post('http://localhost:3000/patch/createPatch', data, {
@@ -111,7 +120,7 @@ const PatchesTable = (data) => {
               Authorization: `Bearer ${token}`,
             },
           });
-          console.log(response.data);
+          console.log("res",response.data);
           setVisible(false)
           notification.success({
             message: 'Saved Successfully!',
@@ -138,9 +147,8 @@ const PatchesTable = (data) => {
     };
     useEffect(() => {
       getPatchesByBunddleId(id)
-    }, [patches])
+    }, [setTotal,setPatches])
     return (
-        // <div style={{ marginTop: 20,marginBottom: 20,width: "80vh",padding:10,}}>
         <div style={{ marginTop: 20,marginBottom: 20,padding:10,}}>
           <Flex horizontal='true' justify="space-between">
             <Typography.Title level={4}>Patches</Typography.Title>
@@ -149,7 +157,7 @@ const PatchesTable = (data) => {
               <PlusOutlined style={{marginLeft:8}}/>
             </Button>
           </Flex>
-          <Table scroll={{x: true}}  dataSource={patches} columns={columns} rowKey="Id" pagination={{onChange: handlePageChange, current: currentPage,pageSize: pageSize}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'}}}></Table>
+          <Table scroll={{x: true}}  dataSource={patches} columns={columns} total={total} rowKey="Id" pagination={{onChange: handlePageChange, current: currentPage,pageSize: pageSize}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'}}}></Table>
           <Modal title="New Patch" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none",marginLeft: "100px"}}} cancelButtonProps={{style: {display: "none"}}}>
             <CreatePatch id={id} onClose={handleCloseModal} onSave={saveNewPatch}/>
           </Modal>

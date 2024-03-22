@@ -1,7 +1,7 @@
 import { useState,useEffect} from "react";
 import {Link,useNavigate} from 'react-router-dom';
 import {Tag,Space,Table,Modal,Button,Typography,Flex,notification} from "antd";
-import { DeleteFilled,PlusOutlined} from "@ant-design/icons";
+import { DeleteFilled,PlusOutlined,EditOutlined} from "@ant-design/icons";
 import CreateBundle from "../components/CreateBundle";
 import axios from "axios";
 const Home = () => {
@@ -57,6 +57,7 @@ const Home = () => {
       render: (_, record) => (
         <Space size="middle">
           <Link to={`/details/${record.dev_patch_id}`}>Detail</Link>
+          <EditOutlined style={{color :"#fa8c16"}} onClick={()=>handleEdit(record.dev_patch_id)}/>
           <DeleteFilled style={{color :"#fa541c"}} onClick={()=>{}}/>
         </Space>
       ),
@@ -74,14 +75,16 @@ const Home = () => {
   // };
   const [loading, setLoading] = useState(false);
   const [bundleList, setBundleList] = useState([]);
+  const [id, setId] = useState("");
   const [visible, setVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [isNew, setIsNew] = useState(true);
+  const [total, setTotal] = useState(0);
   const handleOpenModal = () => setVisible(true);
   const handleCloseModal = () => setVisible(false);
   const navigate = useNavigate();
-  const [windowWidth, setWindowWidth] = useState(`100%`);
   const storeToken=(cname)=> {
     let name = cname + "=";
     let decodedCookie = decodeURIComponent(document.cookie);
@@ -99,21 +102,24 @@ const Home = () => {
     }
     return "";
   }
-  //09
+  //
   const getBundles = async()=>{
     const token = localStorage.getItem("token");
+    console.log("token",token);
     if(token){
       const response = await axios.get(`http://localhost:3000/bundle/listBundle/${currentPage}`,{
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }) 
-      const {data} = response.data;
-      console.log("bundles",data);
+      const {list} = response.data.data;
+      const {total} = response.data.data;
+      setTotal(total)
+      console.log("bundles",list);
       if(response.data.code == 200){      
-        const dataList = data.map(item => ({ ...item, key: item.id }))
+        const dataList = list.map(item => ({ ...item, key: item.id }))
         setBundleList(dataList)     
-        setHasMoreData(data.total > currentPage * pageSize);     
+        setHasMoreData(list.total > currentPage * pageSize);     
       }else{
         navigate('/unauthorized')
       }     
@@ -122,9 +128,11 @@ const Home = () => {
     }
   } 
   //
+  //
   const saveNewBundle =async (formData)=>{
     try{
       const token = localStorage.getItem("token");
+      console.log("token",token);
       if(formData.name !== '' && formData.orientation !== '' && formData.type !== "Select Types" && formData.prod_patch_id !== '' && formData.index_fileName !==' '){
         const response=await axios.post("http://localhost:3000/bundle/createBundle",formData,{
           headers: {
@@ -157,23 +165,42 @@ const Home = () => {
         description: 'Something went wrong !',
       })
     }
+  }
+  //
+  const handleEdit =async (BundleId)=>{
+    try{
+      // console.log("edit id",id);
+      setVisible(true);
+      setIsNew(false);
+      setId(BundleId)
+    }
+    catch(error){
+      setVisible(true);
+      notification.error({
+        message: 'Failed to save!',
+        description: 'Something went wrong !',
+      })
+    }
+  }
+  //
+  const editBundle =async()=>{
+    try{
+
+    }
+    catch(error){
+      setVisible(true);
+      notification.error({
+        message: 'Failed to save!',
+        description: 'Something went wrong !',
+      })
+    }
   } 
-  //
-  // useEffect(() => {
-  //   const handleResize = () => setWindowWidth(window.innerWidth);
-  //   window.addEventListener('resize', handleResize);
-  //   return () => window.removeEventListener('resize', handleResize);
-  // }, []);
-  //
-  const [calculatedWidth, setCalculatedWidth] = useState('')
-  //
+
   useEffect(() => {
-    // const tableWidth = Math.min(windowWidth * 0.8, 800); // Max width of 800px
-    // setCalculatedWidth(`${tableWidth}px`);
+    // console.log(isNew ? "new" : "edit");
     storeToken("AccessToken");
-    // console.log(window.innerWidth);
     getBundles();
-  },[windowWidth,currentPage, pageSize])
+  },[currentPage, pageSize,setVisible])
   const handlePageChange = (page,pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
@@ -182,15 +209,15 @@ const Home = () => {
     <Flex vertical='true' align="center" justify='center' style={{width:'100%'}}>
       <Flex vertical='true' justify="center" style={{marginTop:2}}>
         <Typography.Title level={3}>Bundles</Typography.Title>
-        <Flex justify="flex-end" style={{width: windowWidth,margin :'5px', marginInlineStart:'1px'}}>
+        <Flex justify="flex-end" style={{margin :'5px', marginInlineStart:'1px'}}>
           <Button justify="flex-end" type="primary" onClick={handleOpenModal}>
             New Bundle
             <PlusOutlined style={{marginLeft: 8}}/>
           </Button>
         </Flex>
-        <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : 50,nextButtonDisabled: !hasMoreData}} style={{width: '100%','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
+        <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : total,nextButtonDisabled: !hasMoreData}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
         <Modal  title="New Bundle" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
-          <CreateBundle onClose={handleCloseModal} onSave={saveNewBundle}/>
+          <CreateBundle onClose={handleCloseModal} data={isNew ? null : id} onSave={isNew ? saveNewBundle : editBundle}/>
         </Modal>
       </Flex>
     </Flex>

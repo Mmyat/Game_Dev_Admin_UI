@@ -1,6 +1,6 @@
-import { useState } from "react";
-import {Form,Input,Button,Select} from 'antd';
-const CreateBundle = ({onClose,onSave}) => {
+import { useState,useEffect } from "react";
+import {Form,Input,Button,Select,notification} from 'antd';
+const CreateBundle = ({onClose,onSave,data}) => {
   const [formData, setFormData] = useState({
     name: '',
     type: "Select Types",
@@ -40,6 +40,48 @@ const CreateBundle = ({onClose,onSave}) => {
       })
   };
   //
+  const getData =async(data)=>{
+    try{
+    console.log(data);
+    const id = data
+    console.log("edit id",id);
+    const token = localStorage.getItem("token");
+    if(id !== null && token !== null){
+      const response= await axios.get(`http://localhost:3000/bundle/detailBundle/${id}`,{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const {data} = response.data; 
+      console.log("data",data);
+      setFormData({
+        name: data.name,
+        type: data.type,
+        prod_patch_id : data.prod_patch_id,
+        orientation : data.orientation,
+        index_fileName : data.index_fileName
+      })
+    }    
+    else{
+      console.log("error");
+      setFormData({
+        name: '',
+        type: "Select Types",
+        prod_patch_id : '',
+        orientation : '',
+        index_fileName : ''
+      })
+    }}
+    catch(error){
+      // setVisible(true);
+      console.log("error1");
+      notification.error({
+        message: 'Failed to save!',
+        description: 'Something went wrong !',
+      })
+    }
+  }
+  //bundle
   const formItemLayout = {
     labelCol: {
       xs: { span: 24 },
@@ -50,7 +92,9 @@ const CreateBundle = ({onClose,onSave}) => {
       sm: { span: 14 },
     },
   };
-
+  useEffect(() => {
+    getData(data)
+  },[])
   return (
       <Form {...formItemLayout} style={{ maxWidth: 600}}>            
         <Form.Item label="Name" rules={[{required: true, message: 'Please enter bundle name!'}]}>
@@ -80,4 +124,4 @@ const CreateBundle = ({onClose,onSave}) => {
   );
 }  
 
-export default CreateBundle
+export default CreateBundle;

@@ -19,6 +19,7 @@ const BundleDetail = () => {
       })
       const {data} = response.data;
       setBundle(data)
+      
     }else{
       navigate('/unauthorized')
     }    
@@ -30,6 +31,7 @@ const BundleDetail = () => {
 
   useEffect(() => {
     getBundleById(id)
+    // console.log(bundle);
   }, [])
   return (
     <Flex vertical='true' justify='center'>

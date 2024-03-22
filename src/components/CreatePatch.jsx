@@ -35,18 +35,19 @@ const CreatePatch = ({id,onClose,onSave}) => {
     return true;
   };
 
-  const getBase64 =async (file, cb) => {
+  const getBase64 = async (file, cb) => {
     let reader = new FileReader();
     reader.readAsDataURL(file.originFileObj);
-    reader.onloadend = () => {       
-      const base64String = reader.result;
-      console.log("64:",base64String);
+    reader.onloadend = () => {
+      let base64String = reader.result;
+      const prefixIndex = base64String.indexOf(';base64,');
+      if (prefixIndex !== -1) {
+        base64String = base64String.substring(prefixIndex + ';base64,'.length);
+      }
+      console.log("64:", base64String);
       setBase64(base64String);
     }
-    reader.onerror = function (error) {
-        console.log('Error: ', error);
-    };
-  }
+  };
 
   //handleFileChange
   const handleFileChange = async(event)=>{
