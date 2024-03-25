@@ -1,6 +1,7 @@
 import { useState,useEffect } from "react";
+import axios from "axios";
 import {Form,Input,Button,Select,notification} from 'antd';
-const CreateBundle = ({onClose,onSave,data}) => {
+const CreateBundle = ({onClose,onSave,id}) => {
   const [formData, setFormData] = useState({
     name: '',
     type: "Select Types",
@@ -8,6 +9,7 @@ const CreateBundle = ({onClose,onSave,data}) => {
     orientation : '',
     index_fileName : ''
   });
+  const[bundleId,setBundleId] = useState('')
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
@@ -40,20 +42,20 @@ const CreateBundle = ({onClose,onSave,data}) => {
       })
   };
   //
-  const getData =async(data)=>{
+  const getData =async()=>{
     try{
-    console.log(data);
-    const id = data
     console.log("edit id",id);
     const token = localStorage.getItem("token");
-    if(id !== null && token !== null){
+    console.log(token);
+    if(id !== ''&& token !==''){
+      console.log("hello");
       const response= await axios.get(`http://localhost:3000/bundle/detailBundle/${id}`,{
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       const {data} = response.data; 
-      console.log("data",data);
+      console.log("data:",data);
       setFormData({
         name: data.name,
         type: data.type,
@@ -74,11 +76,11 @@ const CreateBundle = ({onClose,onSave,data}) => {
     }}
     catch(error){
       // setVisible(true);
-      console.log("error1");
-      notification.error({
-        message: 'Failed to save!',
-        description: 'Something went wrong !',
-      })
+      // console.log("error1");
+      // notification.error({
+      //   message: 'Failed to save!',
+      //   description: 'Something went wrong !',
+      // })
     }
   }
   //bundle
@@ -93,8 +95,10 @@ const CreateBundle = ({onClose,onSave,data}) => {
     },
   };
   useEffect(() => {
-    getData(data)
-  },[])
+    console.log("id data",id);
+    setBundleId(id)
+    getData()
+  },[id])
   return (
       <Form {...formItemLayout} style={{ maxWidth: 600}}>            
         <Form.Item label="Name" rules={[{required: true, message: 'Please enter bundle name!'}]}>
@@ -117,7 +121,7 @@ const CreateBundle = ({onClose,onSave,data}) => {
             Cancel
           </Button>
           <Button type="primary" htmlType="submit" onClick={handleSubmit} style={{marginLeft:"8px"}}>
-            Save
+           {id == null?"Save" : "Update"}
           </Button>
         </Form.Item>
       </Form>

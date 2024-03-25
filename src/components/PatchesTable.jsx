@@ -1,4 +1,4 @@
-import {Space,Flex,Button,Table,Typography,Modal,notification,Popconfirm} from "antd";
+import {Space,Flex,Button,Table,Typography,Modal,notification,Popconfirm,Switch,Tag} from "antd";
 import {PlusOutlined,DeleteFilled,EditOutlined} from "@ant-design/icons";
 import {useEffect,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -30,6 +30,10 @@ const PatchesTable = (data) => {
           title: "Enviroment",
           dataIndex: "environment",
           key: "environment",
+          render: (environment) => (
+            <>
+              <Tag color={environment === "production" ? "green" : "yellow"}>{environment}</Tag>
+            </>)
         },
         {
           title: "Actions",
@@ -38,7 +42,8 @@ const PatchesTable = (data) => {
           render: (_, record) => (
             <>
               <Space size="middle">
-                <EditOutlined style={{color :"#fa8c16"}} onClick={()=>{}}/>               
+                <Switch checked={record.environment === "production"} onClick={(checked) =>changeEnvironment(checked,record.id)}/>
+                {/* <EditOutlined style={{color :"#fa8c16"}} onClick={()=>{}}/>                */}
                 <Popconfirm title="Delete the task" description="Are you sure to delete this task?" onConfirm={()=>{deletePatch(record.id)}} onCancel={()=>{}} okText="Yes" cancelText="No">
                   <DeleteFilled style={{color :"#fa541c"}}/>
                 </Popconfirm>
@@ -47,6 +52,45 @@ const PatchesTable = (data) => {
           ),
         },
     ]
+    //
+    const changeEnvironment =async(checked,patch_id)=>{
+      try{
+        const token = localStorage.getItem("token");
+        const changedenv = await axios.get(`http://localhost:3000/patch/updateEnvironemnt/${patch_id}`,{
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log("res env",changedenv.data);
+        if(changedenv.data.code == '200'){
+          console.log("delete success");
+          notification.success({
+            message: 'update Successfully!',
+            description: 'Your data has been updated.',
+          })
+          const updatePatch = await axios.get(`http://localhost:3000/patch/patchById/${patch_id}`,{
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          })
+          console.log(updatePatch);
+          const {environment}= updatePatch.data.data;
+
+          setEnv(environment)
+          checked=env;
+          }else{
+            throw error;
+        }
+      }
+      catch(error){
+        notification.error({
+          message: 'Failed to update env!',
+          description: 'Something went wrong !',
+        })
+      }
+    }
     //
     const deletePatch =async (id)=>{
       try{
@@ -62,12 +106,12 @@ const PatchesTable = (data) => {
           console.log("response1",response.data);
           if(response.data.code == '200'){
             console.log("delete success");
+            getPatchesByBunddleId(id)
             // message.success('delete Successfully');
             notification.success({
               message: 'delete Successfully!',
-              description: 'Your data has been saved.',
+              description: 'Your data has been deleted.',
             })
-            getPatchesByBunddleId(id);
             }else{
               throw error;
           }
@@ -92,6 +136,7 @@ const PatchesTable = (data) => {
     const [patches,setPatches] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
+    const [env,setEnv] = useState('')
     const navigate = useNavigate();
     const getPatchesByBunddleId =async (id)=>{
       const token = localStorage.getItem("token");
@@ -115,29 +160,37 @@ const PatchesTable = (data) => {
         console.log("data",data);
         if(data.bundle_id !== '' && data.patch_id !== '' && data.remark !== '' && data.file_PatchDecode !== ''){
           const token = localStorage.getItem("token");
+          console.log("hello 123");
           const response = await axios.post('http://localhost:3000/patch/createPatch', data, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          });
-          console.log("res",response.data);
+          });  
+          const {code}= response.data      
+          console.log("res",code);
+          // const {data}= response.data
           setVisible(false)
+          getPatchesByBunddleId(id)
           notification.success({
             message: 'Saved Successfully!',
             description: 'Your data has been saved.',
+            duration: 2,
           })
         }
         else{
           setVisible(true);
           notification.error({
-          message: 'Failed to save!',
-          description: 'Please fill all fields!',})
+           message: 'Failed to save!',
+            description: 'Please fill all fields!',
+            duration: 2,
+          })
         }
       }catch(error){
         setVisible(true);
         notification.error({
-        message: 'Failed to save!',
-        description: 'Something went wrong !',
+          message: 'Failed to save!',
+          description: 'Something went wrong !',
+          duration: 2,
       })
       }
     }
@@ -147,7 +200,7 @@ const PatchesTable = (data) => {
     };
     useEffect(() => {
       getPatchesByBunddleId(id)
-    }, [setTotal,setPatches])
+    }, [env])
     return (
         <div style={{ marginTop: 20,marginBottom: 20,padding:10,}}>
           <Flex horizontal='true' justify="space-between">

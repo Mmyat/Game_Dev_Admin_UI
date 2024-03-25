@@ -8,6 +8,7 @@ const CreatePatch = ({id,onClose,onSave}) => {
   const [remark, setRemark] = useState('');
   const [patchId, setPatchId] = useState(null);
   const [showFile,setShowFile]= useState(true)
+  const [fileList, setFileList] = useState([]);
   //
   const generateId=()=>{
     const date = new Date();
@@ -20,11 +21,15 @@ const CreatePatch = ({id,onClose,onSave}) => {
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
   //
+  const handleRemove = (file) => {
+    setFileList([]);
+  };
+//  
   const handleClose = ()=>{
     onClose()
     setRemark('');
     setFile(null);
-    setShowFile(!showFile)
+    // setShowFile(false)
   }
   //
   const onBeforeUpload = (file) => {
@@ -52,6 +57,7 @@ const CreatePatch = ({id,onClose,onSave}) => {
   //handleFileChange
   const handleFileChange = async(event)=>{
     setFile(event.file)
+    // setShowFile(true)
     const reader = new FileReader();
     console.log("file:",file);
     console.log("reader",reader);
@@ -72,9 +78,10 @@ const CreatePatch = ({id,onClose,onSave}) => {
         file_Patch: base64,
       };
       onSave(data)
+      console.log("hello save");
       onClose()
       setRemark('');
-      setShowFile(!showFile)
+      // setShowFile(false)
       setFile(null);
     } catch (error) {
       console.error('Upload error:', error);
@@ -94,17 +101,17 @@ const CreatePatch = ({id,onClose,onSave}) => {
   };
   useEffect(() => {
     setPatchId(generateId());
-  }, [ ]);
+  }, [remark]);
   return (
     <Form layout="vertical" name="basic" form={form} justify='center' onFinish={handleUpload} {...formItemLayout} style={{ maxWidth: 600}} initialValues={{ remember: true }} autoComplete="off">            
         <Form.Item label="">
-          <Input addonBefore="Patch_Id" value={patchId} onChange={(e) => setPatchId(e.target.value)} name="patch_id"/>
+          <Input addonBefore="Patch_Id" value={patchId} onChange={(e) => setPatchId(e.target.value)} name="patch_id" readOnly/>
         </Form.Item>
         <Form.Item label="remark">
           <Input name="remark" value={remark} onChange={(e) => setRemark(e.target.value)}/>
         </Form.Item>
         <Form.Item label="File Upload">
-          <Upload name="file" onRemove={true} multiple={false} file={file} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
+          <Upload name="file" multiple={false} onRemove={handleRemove} file={file} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
             <Button icon={<UploadOutlined/>}>Click to upload</Button>
           </Upload>
         </Form.Item>

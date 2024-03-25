@@ -1,6 +1,6 @@
 import { useState,useEffect} from "react";
 import {Link,useNavigate} from 'react-router-dom';
-import {Tag,Space,Table,Modal,Button,Typography,Flex,notification} from "antd";
+import {Tag,Space,Table,Modal,Button,Typography,Flex,notification,Spin } from "antd";
 import { DeleteFilled,PlusOutlined,EditOutlined} from "@ant-design/icons";
 import CreateBundle from "../components/CreateBundle";
 import axios from "axios";
@@ -24,10 +24,6 @@ const Home = () => {
       render: (type) => (
         <>
           <Tag color={type === "cocos" ? "green" : "blue"}>{type}</Tag>
-          {/* <Switch
-            checked={status === "production"}
-            onChange={(checked) => handleStatusChange(checked, dataIndex)}
-          /> */}
         </>
       ),
     },
@@ -58,35 +54,30 @@ const Home = () => {
         <Space size="middle">
           <Link to={`/details/${record.dev_patch_id}`}>Detail</Link>
           <EditOutlined style={{color :"#fa8c16"}} onClick={()=>handleEdit(record.dev_patch_id)}/>
-          <DeleteFilled style={{color :"#fa541c"}} onClick={()=>{}}/>
+          {/* <DeleteFilled style={{color :"#fa541c"}} onClick={()=>{}}/> */}
         </Space>
       ),
     },
   ];
-  //index_fileName
-  // const handleStatusChange = (checked, dataIndex) => {
-  //   const updatedUsers = bundleList.map((user) => {
-  //     if (user.id === dataIndex) {
-  //       return { ...user, status: checked ? "production" : "development" };
-  //     }
-  //     return user;
-  //   });
-  //   setUsers(updatedUsers);
-  // };
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [bundleList, setBundleList] = useState([]);
   const [id, setId] = useState("");
   const [visible, setVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(10);
   const [hasMoreData, setHasMoreData] = useState(true);
   const [isNew, setIsNew] = useState(true);
   const [total, setTotal] = useState(0);
-  const handleOpenModal = () => setVisible(true);
+  const handleOpenModal = () => {
+    setIsNew(true);
+    setVisible(true);   
+  }
   const handleCloseModal = () => setVisible(false);
   const navigate = useNavigate();
   const storeToken=(cname)=> {
     let name = cname + "=";
+    let tk = document.cookie;
+    console.log("tk",tk);
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
     for(let i = 0; i <ca.length; i++) {
@@ -103,7 +94,7 @@ const Home = () => {
     return "";
   }
   //
-  const getBundles = async()=>{
+  const getBundles = async()=>{   
     const token = localStorage.getItem("token");
     console.log("token",token);
     if(token){
@@ -112,13 +103,16 @@ const Home = () => {
           Authorization: `Bearer ${token}`,
         },
       }) 
-      const {list} = response.data.data;
-      const {total} = response.data.data;
-      setTotal(total)
-      console.log("bundles",list);
-      if(response.data.code == 200){      
+      console.log(response.data);
+      if(response.data.code == 200){  
+        const {list} = response.data.data;
+        const {total} = response.data.data;
+        console.log("bundles",list);
+        console.log("total",total);
+        setTotal(total)    
         const dataList = list.map(item => ({ ...item, key: item.id }))
-        setBundleList(dataList)     
+        setBundleList(dataList)
+        setLoading(false);     
         setHasMoreData(list.total > currentPage * pageSize);     
       }else{
         navigate('/unauthorized')
@@ -128,33 +122,32 @@ const Home = () => {
     }
   } 
   //
-  //
   const saveNewBundle =async (formData)=>{
     try{
       const token = localStorage.getItem("token");
-      console.log("token",token);
       if(formData.name !== '' && formData.orientation !== '' && formData.type !== "Select Types" && formData.prod_patch_id !== '' && formData.index_fileName !==' '){
         const response=await axios.post("http://localhost:3000/bundle/createBundle",formData,{
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
-        console.log(response.data);
+        console.log("code :",response.data.code);
         if(response.data.code == 200){ 
           setVisible(false)
           notification.success({
             message: 'Saved Successfully!',
             description: 'Your data has been saved.',
+            duration: 2,
           })
         }else{
           throw new error;
-        }
-        
+        }       
       }else{
         setVisible(true);
         notification.error({
         message: 'Failed to save!',
         description: 'Please fill all fields!',
+        duration: 2,
       })
       }
     }
@@ -163,13 +156,15 @@ const Home = () => {
       notification.error({
         message: 'Failed to save!',
         description: 'Something went wrong !',
+        duration: 2,
       })
     }
   }
   //
   const handleEdit =async (BundleId)=>{
     try{
-      // console.log("edit id",id);
+      // e.preventDefault();
+      // console.log("edit id",BundleId);
       setVisible(true);
       setIsNew(false);
       setId(BundleId)
@@ -179,48 +174,83 @@ const Home = () => {
       notification.error({
         message: 'Failed to save!',
         description: 'Something went wrong !',
+        duration: 2,
       })
     }
   }
   //
-  const editBundle =async()=>{
+  const editBundle =async(formData)=>{
     try{
-
+      console.log("edit");
+      const token = localStorage.getItem("token");
+      console.log("token",token);
+      if(formData.name !== '' && formData.orientation !== '' && formData.type !== "Select Types" && formData.prod_patch_id !== '' && formData.index_fileName !==' '){
+        const response=await axios.put(`http://localhost:3000/bundle/updateBundle/${id}`,formData,{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        // console.log(response.data);
+        if(response.data.code == 200){ 
+          setVisible(false)
+          notification.success({
+            message: 'Updated Successfully!',
+            description: 'New bundle has been updated.',
+            duration: 2,
+          })
+        }else{
+          throw new error;
+        }
+      }else{
+        setVisible(true);
+        notification.error({
+        message: 'Failed to update!',
+        description: 'Please fill all fields!',
+        duration: 2,
+      })
+      }
     }
     catch(error){
       setVisible(true);
       notification.error({
-        message: 'Failed to save!',
+        message: 'Failed to update!',
         description: 'Something went wrong !',
+        duration: 2,
       })
     }
   } 
 
   useEffect(() => {
-    // console.log(isNew ? "new" : "edit");
     storeToken("AccessToken");
     getBundles();
-  },[currentPage, pageSize,setVisible])
+  },[id,currentPage,visible,bundleList,isNew])
   const handlePageChange = (page,pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
   };
   return (
-    <Flex vertical='true' align="center" justify='center' style={{width:'100%'}}>
-      <Flex vertical='true' justify="center" style={{marginTop:2}}>
-        <Typography.Title level={3}>Bundles</Typography.Title>
-        <Flex justify="flex-end" style={{margin :'5px', marginInlineStart:'1px'}}>
-          <Button justify="flex-end" type="primary" onClick={handleOpenModal}>
-            New Bundle
-            <PlusOutlined style={{marginLeft: 8}}/>
-          </Button>
-        </Flex>
-        <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : total,nextButtonDisabled: !hasMoreData}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
-        <Modal  title="New Bundle" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
-          <CreateBundle onClose={handleCloseModal} data={isNew ? null : id} onSave={isNew ? saveNewBundle : editBundle}/>
-        </Modal>
-      </Flex>
-    </Flex>
+    <div>
+      { loading ?(
+        <Flex align="center" justify='center' style={{width:'100%',height:'100vh'}}> 
+          <Spin/> 
+        </Flex>) :
+        (<Flex vertical='true' align="center" justify='center' style={{width:'100%'}}>
+          <Flex vertical='true' justify="center" style={{marginTop:2}}>
+            <Typography.Title level={3}>Bundles</Typography.Title>
+            <Flex justify="flex-end" style={{margin :'5px', marginInlineStart:'1px'}}>
+              <Button justify="flex-end" type="primary" onClick={handleOpenModal}>
+                New Bundle
+                <PlusOutlined style={{marginLeft: 8}}/>
+              </Button>
+            </Flex>
+            <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : total,nextButtonDisabled: !hasMoreData}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
+            <Modal  title={isNew ? "New Bundle" : "Edit Bundle"} open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
+              <CreateBundle onClose={handleCloseModal} id={isNew ?null : id} onSave={isNew ? saveNewBundle : editBundle}/>
+            </Modal>
+          </Flex>
+        </Flex>)
+      }
+    </div>
   );
 };
 export default Home;
