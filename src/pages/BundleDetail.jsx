@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react'
 import {useParams,useNavigate} from 'react-router-dom';
-import {Typography,Button,Flex,Spin} from 'antd';
+import {Typography,Button,Flex,Spin,notification} from 'antd';
 import {RollbackOutlined} from "@ant-design/icons";
 import BundleForm from '../components/BundleForm';
 import PatchesTable from '../components/PatchesTable';
@@ -20,8 +20,16 @@ const BundleDetail = () => {
           },
         })
         const {data} = response.data;
-        setBundle(data)
-        setLoading(false)
+        if(response.data.code === '200'){
+          setBundle(data)
+          setLoading(false)
+        }else{
+          notification.error({
+            message: 'Failed to get budle details!',
+            description: 'Something went wrong !',
+            duration: 1,
+          })
+        }      
       }else{
         navigate('/unauthorized')
       } 

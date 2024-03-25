@@ -68,18 +68,9 @@ const PatchesTable = (data) => {
           notification.success({
             message: 'update Successfully!',
             description: 'Your data has been updated.',
+            duration: 2,
           })
-          const updatePatch = await axios.get(`http://localhost:3000/patch/patchById/${patch_id}`,{
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          })
-          console.log(updatePatch);
-          const {environment}= updatePatch.data.data;
-
-          setEnv(environment)
-          checked=env;
+          getPatchesByBunddleId(id)
           }else{
             throw error;
         }
@@ -88,16 +79,17 @@ const PatchesTable = (data) => {
         notification.error({
           message: 'Failed to update env!',
           description: 'Something went wrong !',
+          duration: 2,
         })
       }
     }
     //
-    const deletePatch =async (id)=>{
+    const deletePatch =async (patch_id)=>{
       try{
-        if(id !== '' && id !== null){
+        if(patch_id !== '' && patch_id !== null){
           const token = localStorage.getItem("token");
           console.log(id);
-          const response = await axios.delete(`http://localhost:3000/patch/deletePatch/${id}`,{
+          const response = await axios.delete(`http://localhost:3000/patch/deletePatch/${patch_id}`,{
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -111,6 +103,7 @@ const PatchesTable = (data) => {
             notification.success({
               message: 'delete Successfully!',
               description: 'Your data has been deleted.',
+              duration: 1,
             })
             }else{
               throw error;
@@ -119,12 +112,15 @@ const PatchesTable = (data) => {
         else{
           notification.error({
           message: 'Failed to delete!',
-          description: 'Please fill all fields!',})
+          description: 'Please fill all fields!',
+          duration: 1,
+        })
         }
       }catch(error){
         notification.error({
         message: 'Failed to delete!',
         description: 'Something went wrong !',
+        duration: 1,
       })
       }
     }
@@ -132,11 +128,17 @@ const PatchesTable = (data) => {
     const {id}= data
     const [visible, setVisible] = useState(false);
     const handleOpenModal = () => setVisible(true);
-    const handleCloseModal = () => setVisible(false);
+    const handleCloseModal = () =>{ 
+      setVisible(false);
+      setFile(null)
+      setFileList([])
+    }
     const [patches,setPatches] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [env,setEnv] = useState('')
+    const [file, setFile] = useState(null);
+    const [fileList, setFileList] = useState([]);
     const navigate = useNavigate();
     const getPatchesByBunddleId =async (id)=>{
       const token = localStorage.getItem("token");
@@ -148,9 +150,17 @@ const PatchesTable = (data) => {
         })
         const {list} = response.data.data;
         const {total} = response.data.data;
-        console.log("patshes",list);
-        setPatches(list)
-        setTotal(total)
+        if(response.data.code === '200'){
+          console.log("patshes",list);
+          setPatches(list)
+          setTotal(total)
+        }else{
+          notification.error({
+            message: 'Failed to get patches!',
+            description: 'Something went wrong !',
+            duration: 1,
+          })
+        }        
       }else{
         navigate('/unauthorized')
       }
@@ -174,7 +184,7 @@ const PatchesTable = (data) => {
           notification.success({
             message: 'Saved Successfully!',
             description: 'Your data has been saved.',
-            duration: 2,
+            duration: 1,
           })
         }
         else{
@@ -182,7 +192,7 @@ const PatchesTable = (data) => {
           notification.error({
            message: 'Failed to save!',
             description: 'Please fill all fields!',
-            duration: 2,
+            duration: 1,
           })
         }
       }catch(error){
@@ -190,7 +200,7 @@ const PatchesTable = (data) => {
         notification.error({
           message: 'Failed to save!',
           description: 'Something went wrong !',
-          duration: 2,
+          duration: 1,
       })
       }
     }
@@ -212,7 +222,7 @@ const PatchesTable = (data) => {
           </Flex>
           <Table scroll={{x: true}}  dataSource={patches} columns={columns} total={total} rowKey="Id" pagination={{onChange: handlePageChange, current: currentPage,pageSize: pageSize}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'}}}></Table>
           <Modal title="New Patch" open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none",marginLeft: "100px"}}} cancelButtonProps={{style: {display: "none"}}}>
-            <CreatePatch id={id} onClose={handleCloseModal} onSave={saveNewPatch}/>
+            <CreatePatch id={id} file={file} fileList={fileList} onFile={setFile} onFileList={setFileList} onClose={handleCloseModal} onSave={saveNewPatch}/>
           </Modal>
         </div>
     )

@@ -1,14 +1,11 @@
 import {useEffect,useState} from 'react';
 import {Form,Input,Button,Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-const CreatePatch = ({id,onClose,onSave}) => {
-  const [file, setFile] = useState(null);
+const CreatePatch = ({id,file,onFile,fileList, onFileList,onClose,onSave}) => {
   const [form] = Form.useForm();
   const [base64, setBase64] = useState(null);
   const [remark, setRemark] = useState('');
   const [patchId, setPatchId] = useState(null);
-  const [showFile,setShowFile]= useState(true)
-  const [fileList, setFileList] = useState([]);
   //
   const generateId=()=>{
     const date = new Date();
@@ -22,13 +19,14 @@ const CreatePatch = ({id,onClose,onSave}) => {
   }
   //
   const handleRemove = (file) => {
-    setFileList([]);
+    onFileList([]);
   };
 //  
   const handleClose = ()=>{
     onClose()
     setRemark('');
-    setFile(null);
+    onFile(null);
+    onFileList([]);
     // setShowFile(false)
   }
   //
@@ -56,7 +54,8 @@ const CreatePatch = ({id,onClose,onSave}) => {
 
   //handleFileChange
   const handleFileChange = async(event)=>{
-    setFile(event.file)
+    onFile(event.file)
+    onFileList([event.file]);
     // setShowFile(true)
     const reader = new FileReader();
     console.log("file:",file);
@@ -82,7 +81,8 @@ const CreatePatch = ({id,onClose,onSave}) => {
       onClose()
       setRemark('');
       // setShowFile(false)
-      setFile(null);
+      onFile(null);
+      onFileList([]);
     } catch (error) {
       console.error('Upload error:', error);
       console.log("Upload failed!")
@@ -111,7 +111,7 @@ const CreatePatch = ({id,onClose,onSave}) => {
           <Input name="remark" value={remark} onChange={(e) => setRemark(e.target.value)}/>
         </Form.Item>
         <Form.Item label="File Upload">
-          <Upload name="file" multiple={false} onRemove={handleRemove} file={file} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
+          <Upload name="file" fileList={fileList} showUploadList={true} multiple={false} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
             <Button icon={<UploadOutlined/>}>Click to upload</Button>
           </Upload>
         </Form.Item>

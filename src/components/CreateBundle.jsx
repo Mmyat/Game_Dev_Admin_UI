@@ -9,7 +9,7 @@ const CreateBundle = ({onClose,onSave,id}) => {
     orientation : '',
     index_fileName : ''
   });
-  const[bundleId,setBundleId] = useState('')
+  // const[bundleId,setBundleId] = useState('')
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
@@ -32,14 +32,15 @@ const CreateBundle = ({onClose,onSave,id}) => {
   ];
   const handleSubmit =async (e) => {
     e.preventDefault();
-      onSave(formData);
-      setFormData({
-        name: ' ',
-        type: "Select Types",
-        prod_patch_id : ' ',
-        orientation : ' ',
-        index_fileName : ' '
-      })
+    onSave(formData);
+    setFormData({
+      name: ' ',
+      type: "Select Types",
+      prod_patch_id : ' ',
+      orientation : ' ',
+      index_fileName : ' '
+    })
+    getData()
   };
   //
   const getData =async()=>{
@@ -95,8 +96,8 @@ const CreateBundle = ({onClose,onSave,id}) => {
     },
   };
   useEffect(() => {
-    console.log("id data",id);
-    setBundleId(id)
+    // console.log("id data",id);
+    // setBundleId(id)
     getData()
   },[id])
   return (

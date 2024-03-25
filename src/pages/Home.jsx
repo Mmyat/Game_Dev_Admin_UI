@@ -137,7 +137,7 @@ const Home = () => {
           notification.success({
             message: 'Saved Successfully!',
             description: 'Your data has been saved.',
-            duration: 2,
+            duration: 1,
           })
         }else{
           throw new error;
@@ -147,7 +147,7 @@ const Home = () => {
         notification.error({
         message: 'Failed to save!',
         description: 'Please fill all fields!',
-        duration: 2,
+        duration: 1,
       })
       }
     }
@@ -156,7 +156,7 @@ const Home = () => {
       notification.error({
         message: 'Failed to save!',
         description: 'Something went wrong !',
-        duration: 2,
+        duration: 1,
       })
     }
   }
@@ -174,7 +174,7 @@ const Home = () => {
       notification.error({
         message: 'Failed to save!',
         description: 'Something went wrong !',
-        duration: 2,
+        duration: 1,
       })
     }
   }
@@ -196,7 +196,7 @@ const Home = () => {
           notification.success({
             message: 'Updated Successfully!',
             description: 'New bundle has been updated.',
-            duration: 2,
+            duration: 1,
           })
         }else{
           throw new error;
@@ -206,7 +206,7 @@ const Home = () => {
         notification.error({
         message: 'Failed to update!',
         description: 'Please fill all fields!',
-        duration: 2,
+        duration: 1,
       })
       }
     }
@@ -215,7 +215,7 @@ const Home = () => {
       notification.error({
         message: 'Failed to update!',
         description: 'Something went wrong !',
-        duration: 2,
+        duration: 1,
       })
     }
   } 
@@ -223,7 +223,7 @@ const Home = () => {
   useEffect(() => {
     storeToken("AccessToken");
     getBundles();
-  },[id,currentPage,visible,bundleList,isNew])
+  },[id,isNew])
   const handlePageChange = (page,pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
