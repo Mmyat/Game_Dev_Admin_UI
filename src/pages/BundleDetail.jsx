@@ -49,14 +49,14 @@ const BundleDetail = () => {
   return (
     <div>
       { loading ?(
-        <Flex align="center" justify='center' style={{width:'100%',height:'100vh'}}> 
+        <Flex align="center" justify='center' style={{width:'100vh',height:'100vh'}}> 
           <Spin/> 
         </Flex>
       ) : 
         (
         <Flex vertical='true' justify='center'>
           <Flex justify="flex-start">
-            <Button ghost align='flex-start' type="primary" icon={<RollbackOutlined/>} onClick={handleBackClick} style={{marginLeft: '40px',marginTop : '30px'}}>Back</Button>        
+            <Button ghost align='flex-start' type="primary" icon={<RollbackOutlined/>} onClick={handleBackClick} style={{marginLeft: '20px',marginTop : '20px'}}>Back</Button>        
           </Flex>
           <Flex vertical='true' align='center' justify='center'>
             <Typography.Title level={4}>Bundle Details</Typography.Title>

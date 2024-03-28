@@ -2,9 +2,9 @@ import { Flex, Form, Input, Typography} from 'antd';
 const BundleForm = ({data}) => {
     const {name,type,prod_patch_id,dev_patch_id,orientation,index_fileName} = data;
     return (      
-        <Form layout="vertical" vertical='true' align="center" justify='center' style={{marginBottom: 20,width: "50vh"}}>
+        <Form layout="vertical" vertical='true' align="center" justify='center' style={{width: '40vw',marginBottom:10}}>
             <Form.Item label="Name" className='mb-1'>
-                <Input value={name} readOnly /> 
+                <Input size='default' value={name} readOnly /> 
             </Form.Item>
             <Form.Item label="Type" className='mb-1'>
                 <Input value={type} readOnly /> 

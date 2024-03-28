@@ -6,7 +6,7 @@ const CreateBundle = ({onClose,onSave,id}) => {
     name: '',
     type: "Select Types",
     prod_patch_id : '',
-    orientation : '',
+    orientation : 'Select Orientation',
     index_fileName : ''
   });
   // const[bundleId,setBundleId] = useState('')
@@ -16,13 +16,16 @@ const CreateBundle = ({onClose,onSave,id}) => {
   const handleSelectChange = (value) => {
     setFormData({ ...formData, type: value });
   };
+  const handleOptionChange = (value) => {
+    setFormData({ ...formData, orientation: value });
+  };
   const handleClose = ()=>{
     onClose();
     setFormData({
       name: '',
       type: "Select Types",
       prod_patch_id : '',
-      orientation : '',
+      orientation : 'Select Orientation',
       index_fileName : ''
     })
   }
@@ -30,6 +33,10 @@ const CreateBundle = ({onClose,onSave,id}) => {
     { value: "web", label: "Web" },
     { value: "cocos", label: "Cocos" },
   ];
+  const orientation_opts =[
+    { value: "portrait ", label: "Portrait " },
+    { value: "landscape", label: "Landscape" },
+  ]
   const handleSubmit =async (e) => {
     e.preventDefault();
     onSave(formData);
@@ -37,7 +44,7 @@ const CreateBundle = ({onClose,onSave,id}) => {
       name: ' ',
       type: "Select Types",
       prod_patch_id : ' ',
-      orientation : ' ',
+      orientation : 'Select Orientation',
       index_fileName : ' '
     })
     getData()
@@ -66,22 +73,24 @@ const CreateBundle = ({onClose,onSave,id}) => {
       })
     }    
     else{
-      console.log("error");
+      console.log("New bundle create");
       setFormData({
         name: '',
         type: "Select Types",
         prod_patch_id : '',
-        orientation : '',
+        orientation : 'Select Orientation',
         index_fileName : ''
       })
     }}
-    catch(error){
-      // setVisible(true);
-      // console.log("error1");
-      // notification.error({
-      //   message: 'Failed to save!',
-      //   description: 'Something went wrong !',
-      // })
+    catch{
+      console.log("New bundle create");
+      setFormData({
+        name: '',
+        type: "Select Types",
+        prod_patch_id : '',
+        orientation : 'Select Orientation',
+        index_fileName : ''
+      })
     }
   }
   //bundle
@@ -91,33 +100,45 @@ const CreateBundle = ({onClose,onSave,id}) => {
       sm: { span: 6 },
     },
     wrapperCol: {
-      xs: { span: 24 },
+      xs: { span: 28 },
       sm: { span: 14 },
     },
+    // with :{
+    //   xs : {width : '40vw'},
+    //   sm : {width : '30vw'}
+    // }
   };
+
+  const buttonLayout = {
+    wrapperCol :{
+      xs:{offset: 14, span: 14},
+      sm: {offset : 12, span: 14},
+    }
+  }
+
   useEffect(() => {
     // console.log("id data",id);
     // setBundleId(id)
     getData()
   },[id])
   return (
-      <Form {...formItemLayout} style={{ maxWidth: 600}}>            
-        <Form.Item label="Name" rules={[{required: true, message: 'Please enter bundle name!'}]}>
-          <Input name="name" value={formData.name} onChange={handleChange}/>
+      <Form {...formItemLayout} style={{maxWidth: 600}}>            
+        <Form.Item justify='center' align='center' rules={[{required: true, message: 'Please enter bundle name!'}]}>
+          <Input name="name" placeholder="Name" value={formData.name} onChange={handleChange}/>
         </Form.Item>
-        <Form.Item label="Type" rules={[{required: true, message: 'Please select bundle type'}]}>
+        <Form.Item justify='center' align='center' rules={[{required: true, message: 'Please select bundle type'}]}>
           <Select value={formData.type} onChange={handleSelectChange} options={options}/>
         </Form.Item>
-        <Form.Item label="Prod_Patch_Id" rules={[{required: true, message: 'Please enter prod_patch_id!'}]}>
-          <Input name="prod_patch_id" value={formData.prod_patch_id} onChange={handleChange}/>
+        <Form.Item justify='center' align='center' rules={[{required: true, message: 'Please enter prod_patch_id!'}]}>
+          <Input placeholder="Prod_Patch_Id" name="prod_patch_id" value={formData.prod_patch_id} onChange={handleChange}/>
         </Form.Item>
-        <Form.Item label="orientation">
-          <Input name="orientation" value={formData.orientation} onChange={handleChange}/>
+        <Form.Item justify='center' align='center'>
+          <Select name="orientation" value={formData.orientation} onChange={handleOptionChange} options={orientation_opts}/>
         </Form.Item>
-        <Form.Item label="Index_FileName">
-          <Input name="index_fileName" value={formData.index_fileName} onChange={handleChange}/>
+        <Form.Item justify='center' align='center'>
+          <Input placeholder="Index_FileName" name="index_fileName" value={formData.index_fileName} onChange={handleChange}/>
         </Form.Item>
-        <Form.Item wrapperCol={{ offset: 13, span: 16}}>
+        <Form.Item {...buttonLayout}>
           <Button ghost type="primary" onClick={handleClose}>
             Cancel
           </Button>

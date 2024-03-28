@@ -5,12 +5,7 @@ import { DeleteFilled,PlusOutlined,EditOutlined} from "@ant-design/icons";
 import CreateBundle from "../components/CreateBundle";
 import axios from "axios";
 const Home = () => {
-  //
   const columns = [
-    {
-      title: "SrNo",
-      key: 'index', render: (value, record, index) =>(currentPage - 1) * pageSize + index + 1
-    },
     {
       title: "Name",
       dataIndex: "name",
@@ -223,7 +218,7 @@ const Home = () => {
   useEffect(() => {
     storeToken("AccessToken");
     getBundles();
-  },[id,isNew])
+  },[id,isNew,currentPage])
   const handlePageChange = (page,pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
@@ -243,8 +238,8 @@ const Home = () => {
                 <PlusOutlined style={{marginLeft: 8}}/>
               </Button>
             </Flex>
-            <Table dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : total,nextButtonDisabled: !hasMoreData}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
-            <Modal  title={isNew ? "New Bundle" : "Edit Bundle"} open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
+            <Table scroll={{x: true}} dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : total,nextButtonDisabled: !hasMoreData}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
+            <Modal justify='center' align='center' open={visible} title={isNew ? "New Bundle" : "Edit Bundle"} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
               <CreateBundle onClose={handleCloseModal} id={isNew ?null : id} onSave={isNew ? saveNewBundle : editBundle}/>
             </Modal>
           </Flex>

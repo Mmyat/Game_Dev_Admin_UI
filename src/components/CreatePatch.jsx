@@ -90,32 +90,40 @@ const CreatePatch = ({id,file,onFile,fileList, onFileList,onClose,onSave}) => {
   };
 
   const formItemLayout = {
-    labelCol: {
-      xs: { span: 28 },
-      sm: { span: 6 },
-    },
+    // labelCol: {
+    //   xs: { span: 28 },
+    //   sm: { span: 6 },
+    // },
     wrapperCol: {
       xs: { span: 28 },
       sm: { span: 18 },
     },
   };
+  
+  const buttonLayout = {
+    wrapperCol :{
+      xs:{offset: 14, span: 14},
+      sm: {offset: 11, span: 14},
+    }
+  }
+
   useEffect(() => {
     setPatchId(generateId());
   }, [remark]);
   return (
-    <Form layout="vertical" name="basic" form={form} justify='center' onFinish={handleUpload} {...formItemLayout} style={{ maxWidth: 600}} initialValues={{ remember: true }} autoComplete="off">            
-        <Form.Item label="">
+    <Form layout="vertical" name="basic" form={form} onFinish={handleUpload} {...formItemLayout} style={{ maxWidth: 600}} initialValues={{ remember: true }} autoComplete="off">            
+        <Form.Item label="" justify='center' align='center'>
           <Input addonBefore="Patch_Id" value={patchId} onChange={(e) => setPatchId(e.target.value)} name="patch_id" readOnly/>
         </Form.Item>
-        <Form.Item label="remark">
+        <Form.Item label="remark" justify='center' align='center'>
           <Input name="remark" value={remark} onChange={(e) => setRemark(e.target.value)}/>
         </Form.Item>
-        <Form.Item label="File Upload">
+        <Form.Item label="File Upload" justify='center' align='center'>
           <Upload name="file" fileList={fileList} showUploadList={true} multiple={false} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
             <Button icon={<UploadOutlined/>}>Click to upload</Button>
           </Upload>
         </Form.Item>
-        <Form.Item wrapperCol={{ offset: 11, span: 8}}>
+        <Form.Item justify='center' align='center' {...buttonLayout}>
           <Button ghost type="primary" onClick={handleClose}>
             Cancel
           </Button>
