@@ -221,7 +221,7 @@ const PatchesTable = (data) => {
             </Button>
           </Flex>
           <Table scroll={{x: true}}  dataSource={patches} columns={columns} total={total} rowKey="Id" pagination={{onChange: handlePageChange, current: currentPage,pageSize: pageSize}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'}}}></Table>
-          <Modal title="New Patch" justify='center' align='center' open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none",marginLeft: "100px"}}} cancelButtonProps={{style: {display: "none"}}}>
+          <Modal title="New Patch" justify='center' align='center' width={400}  open={visible} onCancel={handleCloseModal} okButtonProps={{style: {display: "none",marginLeft: "100px"}}} cancelButtonProps={{style: {display: "none"}}}>
             <CreatePatch id={id} file={file} fileList={fileList} onFile={setFile} onFileList={setFileList} onClose={handleCloseModal} onSave={saveNewPatch}/>
           </Modal>
         </div>

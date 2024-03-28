@@ -18,9 +18,9 @@ const CreatePatch = ({id,file,onFile,fileList, onFileList,onClose,onSave}) => {
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
   //
-  const handleRemove = (file) => {
-    onFileList([]);
-  };
+  // const handleRemove = (file) => {
+  //   onFileList([]);
+  // };
 //  
   const handleClose = ()=>{
     onClose()
@@ -96,14 +96,14 @@ const CreatePatch = ({id,file,onFile,fileList, onFileList,onClose,onSave}) => {
     // },
     wrapperCol: {
       xs: { span: 28 },
-      sm: { span: 18 },
+      sm: { span: 24 },
     },
   };
   
   const buttonLayout = {
     wrapperCol :{
       xs:{offset: 14, span: 14},
-      sm: {offset: 11, span: 14},
+      sm: {offset: 14, span: 12},
     }
   }
 

@@ -1,8 +1,7 @@
 import { useState,useEffect} from "react";
 import {Link,useNavigate} from 'react-router-dom';
-import {Tag,Space,Table,Modal,Button,Typography,Flex,notification,Spin } from "antd";
-import { DeleteFilled,PlusOutlined,EditOutlined} from "@ant-design/icons";
-import CreateBundle from "../components/CreateBundle";
+import {Tag,Space,Table,Modal,Button,Typography,Flex,notification,Spin,Form,Input,Select} from "antd";
+import {PlusOutlined,EditOutlined} from "@ant-design/icons";
 import axios from "axios";
 const Home = () => {
   const columns = [
@@ -67,7 +66,44 @@ const Home = () => {
     setIsNew(true);
     setVisible(true);   
   }
-  const handleCloseModal = () => setVisible(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    type: "Select Types",
+    prod_patch_id : '',
+    orientation : 'Select Orientation',
+    index_fileName : ''
+  });
+  // const[bundleId,setBundleId] = useState('')
+  const handleChange = (event) => {
+    console.log("name",event.target.value);
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+  };
+  const handleSelectChange = (value) => {
+    console.log("types",value);
+    setFormData({ ...formData, type: value });
+  };
+  const handleOptionChange = (value) => {
+    console.log("orient",value);
+    setFormData({ ...formData, orientation: value });
+  };
+  const handleClose = ()=>{
+    setVisible(false);    
+    setFormData({
+      name: '',
+      type: "Select Types",
+      prod_patch_id : '',
+      orientation : 'Select Orientation',
+      index_fileName : ''
+    })
+  }
+  const options = [
+    { value: "web", label: "Web" },
+    { value: "cocos", label: "Cocos" },
+  ];
+  const orientation_opts =[
+    { value: "portrait ", label: "Portrait " },
+    { value: "landscape", label: "Landscape" },
+  ]
   const navigate = useNavigate();
   const storeToken=(cname)=> {
     let name = cname + "=";
@@ -117,10 +153,12 @@ const Home = () => {
     }
   } 
   //
-  const saveNewBundle =async (formData)=>{
+  const saveNewBundle =async ()=>{
     try{
+      console.log("save");
+      console.log("form data",formData);
       const token = localStorage.getItem("token");
-      if(formData.name !== '' && formData.orientation !== '' && formData.type !== "Select Types" && formData.prod_patch_id !== '' && formData.index_fileName !==' '){
+      if(formData.name !== '' && formData.orientation !== 'Select Orientation' && formData.type !== "Select Types" && formData.prod_patch_id !== '' && formData.index_fileName !==' '){
         const response=await axios.post("http://localhost:3000/bundle/createBundle",formData,{
           headers: {
             Authorization: `Bearer ${token}`,
@@ -134,6 +172,14 @@ const Home = () => {
             description: 'Your data has been saved.',
             duration: 1,
           })
+          setFormData({
+            name: ' ',
+            type: "Select Types",
+            prod_patch_id : ' ',
+            orientation : 'Select Orientation',
+            index_fileName : ' '
+          })
+          // getData()
         }else{
           throw new error;
         }       
@@ -158,11 +204,28 @@ const Home = () => {
   //
   const handleEdit =async (BundleId)=>{
     try{
-      // e.preventDefault();
-      // console.log("edit id",BundleId);
       setVisible(true);
       setIsNew(false);
-      setId(BundleId)
+      setId(BundleId);
+      const token = localStorage.getItem("token");
+      console.log(token);
+      if(id !== ''&& token !==''){
+        console.log("hello");
+        const response= await axios.get(`http://localhost:3000/bundle/detailBundle/${BundleId}`,{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        const {data} = response.data; 
+        console.log("data:",data);
+        setFormData({
+          name: data.name,
+          type: data.type,
+          prod_patch_id : data.prod_patch_id,
+          orientation : data.orientation,
+          index_fileName : data.index_fileName
+        })
+      } 
     }
     catch(error){
       setVisible(true);
@@ -174,8 +237,9 @@ const Home = () => {
     }
   }
   //
-  const editBundle =async(formData)=>{
+  const editBundle =async()=>{
     try{
+      // console.log("edit");
       console.log("edit");
       const token = localStorage.getItem("token");
       console.log("token",token);
@@ -192,6 +256,13 @@ const Home = () => {
             message: 'Updated Successfully!',
             description: 'New bundle has been updated.',
             duration: 1,
+          })
+          setFormData({
+            name: ' ',
+            type: "Select Types",
+            prod_patch_id : ' ',
+            orientation : 'Select Orientation',
+            index_fileName : ' '
           })
         }else{
           throw new error;
@@ -214,11 +285,26 @@ const Home = () => {
       })
     }
   } 
+  //
+  const formItemLayout = {
+    wrapperCol: {
+      xs: { span: 40 },
+      sm: { span: 24 },
+    },
+  };
+  //
+  const buttonLayout = {
+    wrapperCol :{
+      xs:{offset: 14, span: 14},
+      sm: {offset : 14, span: 14},
+    }
+  }
 
   useEffect(() => {
     storeToken("AccessToken");
     getBundles();
-  },[id,isNew,currentPage])
+  },[id,isNew,currentPage,formData])
+
   const handlePageChange = (page,pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
@@ -239,8 +325,32 @@ const Home = () => {
               </Button>
             </Flex>
             <Table scroll={{x: true}} dataSource={bundleList} columns={columns} key={bundleList.id} pagination={{onChange: handlePageChange, current: currentPage,pageSize:pageSize,total : total,nextButtonDisabled: !hasMoreData}} style={{width: '80vw','@media (max-width: 768px)': {fontSize: '0.8rem'},'@media (max-width: 576px)': { fontSize: '0.7rem'},marginTop:5}}></Table>
-            <Modal justify='center' align='center' open={visible} title={isNew ? "New Bundle" : "Edit Bundle"} onCancel={handleCloseModal} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
-              <CreateBundle onClose={handleCloseModal} id={isNew ?null : id} onSave={isNew ? saveNewBundle : editBundle}/>
+            <Modal justify='center' align='center' width={400} open={visible} title={isNew ? "New Bundle" : "Edit Bundle"} onCancel={handleClose} okButtonProps={{style: {display: "none"}}} cancelButtonProps={{style: {display: "none"}}}>
+              <Form {...formItemLayout}>            
+                <Form.Item justify='center' align='center' rules={[{required: true, message: 'Please enter bundle name!'}]}>
+                  <Input name="name" placeholder="Name" value={formData.name} onChange={handleChange}/>
+                </Form.Item>
+                <Form.Item justify='center' align='center' rules={[{required: true, message: 'Please select bundle type'}]}>
+                  <Select value={formData.type} onChange={handleSelectChange} options={options}/>
+                </Form.Item>
+                <Form.Item justify='center' align='center' rules={[{required: true, message: 'Please enter prod_patch_id!'}]}>
+                  <Input placeholder="Prod_Patch_Id" name="prod_patch_id" value={formData.prod_patch_id} onChange={handleChange}/>
+                </Form.Item>
+                <Form.Item justify='center' align='center'>
+                  <Select name="orientation" value={formData.orientation} onChange={handleOptionChange} options={orientation_opts}/>
+                </Form.Item>
+                <Form.Item justify='center' align='center'>
+                  <Input placeholder="Index_FileName" name="index_fileName" value={formData.index_fileName} onChange={handleChange}/>
+                </Form.Item>
+                <Form.Item {...buttonLayout} justify='end'>
+                  <Button ghost type="primary" onClick={handleClose}>
+                    Cancel
+                  </Button>
+                  <Button type="primary" htmlType="submit" onClick={isNew ? saveNewBundle : editBundle} style={{marginLeft:"8px"}}>
+                  {isNew ?"Save" : "Update"}
+                  </Button>
+                </Form.Item>
+              </Form>
             </Modal>
           </Flex>
         </Flex>)
