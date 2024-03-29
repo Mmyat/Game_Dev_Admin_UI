@@ -49,7 +49,7 @@ const BundleDetail = () => {
   return (
     <div>
       { loading ?(
-        <Flex align="center" justify='center' style={{width:'100vh',height:'100vh'}}> 
+        <Flex align="center" justify='center' style={{width:'100%',height:'100vh'}}> 
           <Spin/> 
         </Flex>
       ) : 

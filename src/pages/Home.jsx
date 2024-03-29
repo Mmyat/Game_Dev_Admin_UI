@@ -108,7 +108,6 @@ const Home = () => {
   const storeToken=(cname)=> {
     let name = cname + "=";
     let tk = document.cookie;
-    console.log("tk",tk);
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
     for(let i = 0; i <ca.length; i++) {
@@ -127,7 +126,7 @@ const Home = () => {
   //
   const getBundles = async()=>{   
     const token = localStorage.getItem("token");
-    console.log("token",token);
+    // console.log("token",token);
     if(token){
       const response = await axios.get(`http://localhost:3000/bundle/listBundle/${currentPage}`,{
         headers: {
@@ -207,9 +206,10 @@ const Home = () => {
       setVisible(true);
       setIsNew(false);
       setId(BundleId);
+      console.log("budleId",BundleId);
       const token = localStorage.getItem("token");
       console.log(token);
-      if(id !== ''&& token !==''){
+      if(token !==''){
         console.log("hello");
         const response= await axios.get(`http://localhost:3000/bundle/detailBundle/${BundleId}`,{
           headers: {
@@ -217,15 +217,23 @@ const Home = () => {
           },
         })
         const {data} = response.data; 
-        console.log("data:",data);
-        setFormData({
-          name: data.name,
-          type: data.type,
-          prod_patch_id : data.prod_patch_id,
-          orientation : data.orientation,
-          index_fileName : data.index_fileName
-        })
-      } 
+        console.log("edit data:",response.data.code);
+        if(response.data.code == 200){ 
+          setFormData({
+            name: data.name,
+            type: data.type,
+            prod_patch_id : data.prod_patch_id,
+            orientation : data.orientation,
+            index_fileName : data.index_fileName
+          })
+        }
+        else{
+          throw new Error;
+        }
+      }
+      else{
+        throw new Error;
+      }
     }
     catch(error){
       setVisible(true);
@@ -295,8 +303,8 @@ const Home = () => {
   //
   const buttonLayout = {
     wrapperCol :{
-      xs:{offset: 14, span: 14},
-      sm: {offset : 14, span: 14},
+      xs:{offset: 13, span: 14},
+      sm: {offset : 13, span: 14},
     }
   }
 

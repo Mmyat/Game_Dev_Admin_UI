@@ -1,8 +1,18 @@
 import { Flex, Form, Input, Typography} from 'antd';
 const BundleForm = ({data}) => {
     const {name,type,prod_patch_id,dev_patch_id,orientation,index_fileName} = data;
+    // const formItemLayout = {
+    //     // labelCol: {
+    //     //   xs: { span: 28 },
+    //     //   sm: { span: 6 },
+    //     // },
+    //     wrapperCol: {
+    //       xs: { span: 24 },
+    //       sm: { span: 22 },
+    //     },
+    //   };
     return (      
-        <Form layout="vertical" vertical='true' align="center" justify='center' style={{width: '40vw',marginBottom:10}}>
+        <Form layout="vertical" vertical='true' align="center" justify='center' style={{width: '30vw',marginBottom:10}}>
             <Form.Item label="Name" className='mb-1'>
                 <Input size='default' value={name} readOnly /> 
             </Form.Item>
