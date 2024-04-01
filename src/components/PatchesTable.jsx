@@ -3,14 +3,9 @@ import { PlusOutlined, DeleteFilled, UploadOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-// import CreatePatch from "./CreatePatch";
 const PatchesTable = (data) => {
   const pageSize = 4;
   const columns = [
-    // {
-    //   title: "SrNo",
-    //   key: 'index', render: (value, record, index) =>(currentPage - 1) * pageSize + index + 1
-    // },
     {
       title: "Date",
       dataIndex: "update_dateTime",
@@ -49,30 +44,35 @@ const PatchesTable = (data) => {
               checked={record.environment === "production"}
               onClick={(checked) => changeEnvironment(checked, record.id)}
             />
-            {/* <EditOutlined style={{color :"#fa8c16"}} onClick={()=>{}}/>                */}
-            <Popconfirm
-              title="Delete the task"
-              description="Are you sure to delete this task?"
-              onConfirm={() => {
-                deletePatch(record.id);
-              }}
-              onCancel={() => {}}
-              okText="Yes"
-              cancelText="No"
-            >
-              <DeleteFilled style={{ color: "#fa541c" }} />
-            </Popconfirm>
+            {/* <EditOutlined style={{color :"#fa8c16"}} onClick={()=>{}}/>                */}            
+              <DeleteFilled style={{ color: "#fa541c" }} onClick={()=>showModal(record.id)}/>           
           </Space>
         </>
       ),
     },
   ];
-  //
+  //Delete Comfirm handle
+  const showModal = (delete_id) => {
+    console.log("delete",delete_id);
+    setDeleteId(delete_id);
+    setIsTapDelete(true);
+  };
+  const handleOk = () => {
+    deletePatch(deleteId)
+    setIsTapDelete(false);
+  };
+  const handleCancel = () => {
+    setIsTapDelete(false);
+  };
+
+  //Env change handle
   const changeEnvironment = async (checked, patch_id) => {
     try {
       const token = localStorage.getItem("token");
+      console.log("pat tok",token);
+      console.log("id",patch_id);
       const changedenv = await axios.get(
-        `http://localhost:3000/patch/updateEnvironemnt/${patch_id}`,
+        `http://localhost:3000/patch/updateEnvironment/${patch_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -80,9 +80,8 @@ const PatchesTable = (data) => {
           },
         }
       );
-      console.log("res env", changedenv.data);
+      console.log("env",changedenv);
       if (changedenv.data.code == "200") {
-        console.log("delete success");
         notification.success({
           message: "update Successfully!",
           description: "Your data has been updated.",
@@ -105,7 +104,6 @@ const PatchesTable = (data) => {
     try {
       if (patch_id !== "" && patch_id !== null) {
         const token = localStorage.getItem("token");
-        console.log(id);
         const response = await axios.delete(
           `http://localhost:3000/patch/deletePatch/${patch_id}`,
           {
@@ -115,7 +113,6 @@ const PatchesTable = (data) => {
             },
           }
         );
-        console.log("response1", response.data);
         if (response.data.code == "200") {
           console.log("delete success");
           getPatchesByBunddleId(id);
@@ -155,6 +152,7 @@ const PatchesTable = (data) => {
     setFile(null);
     setRemark("");
     setFileList([]);
+    setWarning('')
   };
   const [patches, setPatches] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -167,6 +165,9 @@ const PatchesTable = (data) => {
   const [base64, setBase64] = useState(null);
   const [remark, setRemark] = useState("");
   const [patchId, setPatchId] = useState(null);
+  const [warning,setWarning] = useState("")
+  const [isTapDelete, setIsTapDelete] = useState(false);
+  const [deleteId,setDeleteId] = useState('')
   //
   const generateId = () => {
     const date = new Date();
@@ -182,8 +183,10 @@ const PatchesTable = (data) => {
   const onBeforeUpload = (file) => {
     if (!file.type.includes("zip")) {
       console.log("Only ZIP files are allowed!");
+      setWarning("Only ZIP files are allowed!")
       return Upload.LIST_IGNORE;
     }
+    setWarning('')
     return true;
   };
 
@@ -215,30 +218,8 @@ const PatchesTable = (data) => {
       });
     }
   };
-  //
-  const handleUpload = async () => {
-    try {
-      console.log(base64);
-      const data = {
-        bundle_id: id,
-        patch_id: patchId,
-        remark,
-        file_Patch: base64,
-      };
-      saveNewPatch(data)
-      console.log("hello save");
-      handleCloseModal()
-    } catch (error) {
-      console.error("Upload error:", error);
-      console.log("Upload failed!");
-    }
-  };
 
   const formItemLayout = {
-    // labelCol: {
-    //   xs: { span: 28 },
-    //   sm: { span: 6 },
-    // },
     wrapperCol: {
       xs: { span: 28 },
       sm: { span: 24 },
@@ -279,8 +260,14 @@ const PatchesTable = (data) => {
       navigate("/unauthorized");
     }
   };
-  const saveNewPatch = async (data) => {
+  const saveNewPatch = async () => {
     try {
+      const data = {
+        bundle_id: id,
+        patch_id: patchId,
+        remark,
+        file_Patch: base64,
+      };
       console.log("data", data);
       if (
         data.bundle_id !== "" &&
@@ -300,15 +287,17 @@ const PatchesTable = (data) => {
           }
         );
         const { code } = response.data;
-        console.log("res", code);
-        // const {data}= response.data
-        setVisible(false);
-        getPatchesByBunddleId(id);
-        notification.success({
-          message: "Saved Successfully!",
-          description: "Your data has been saved.",
-          duration: 1,
-        });
+        if(code == 200){
+          getPatchesByBunddleId(id);
+          notification.success({
+            message: "Saved Successfully!",
+            description: "Your data has been saved.",
+            duration: 1,
+          });
+          handleCloseModal();
+        }else{
+          throw new Error;
+        }        
       } else {
         setVisible(true);
         notification.error({
@@ -327,7 +316,7 @@ const PatchesTable = (data) => {
     }
   };
 
-  const handlePageChange = (page, pageSize) => {
+  const handlePageChange = (page) => {
     setCurrentPage(page);
   };
   useEffect(() => {
@@ -343,9 +332,11 @@ const PatchesTable = (data) => {
         </Button>
       </Flex>
       <Table scroll={{ x: true }} dataSource={patches} columns={columns} total={total} rowKey="Id" pagination={{ onChange: handlePageChange, current: currentPage, pageSize: pageSize}} style={{width: "80vw","@media (max-width: 768px)": { fontSize: "0.8rem" },"@media (max-width: 576px)": { fontSize: "0.7rem" }}}></Table>
+      <Modal title="Delete Patch" open={isTapDelete} onOk={handleOk} onCancel={handleCancel}>
+        <p>Are you sure to delete this patch?</p>
+      </Modal>
       <Modal title="New Patch" justify="center" align="center" width={400} open={visible} onCancel={handleCloseModal} okButtonProps={{ style: { display: "none", marginLeft: "100px" } }} cancelButtonProps={{ style: { display: "none" } }}>
-        {/* <CreatePatch id={id} file={file} fileList={fileList} onFile={setFile} onFileList={setFileList} onClose={handleCloseModal} onSave={saveNewPatch}/> */}
-        <Form layout="vertical" name="basic" form={form} onFinish={handleUpload} {...formItemLayout} style={{ maxWidth: 600}} initialValues={{ remember: true }} autoComplete="off">            
+        <Form layout="vertical" name="basic" form={form} onFinish={saveNewPatch} {...formItemLayout} style={{ maxWidth: 600}} initialValues={{ remember: true }} autoComplete="off">            
           <Form.Item label="" justify='center' align='center'>
             <Input addonBefore="Patch_Id" value={patchId} onChange={(e) => setPatchId(e.target.value)} name="patch_id" readOnly/>
           </Form.Item>
@@ -353,6 +344,7 @@ const PatchesTable = (data) => {
             <Input name="remark" value={remark} onChange={(e) => setRemark(e.target.value)}/>
           </Form.Item>
           <Form.Item label="File Upload" justify='center' align='center'>
+            <p style={{color: 'red'}}>{warning}</p>
             <Upload name="file" fileList={fileList} showUploadList={true} multiple={false} onChange={handleFileChange} beforeUpload={onBeforeUpload} onDrop={(e) => e.preventDefault()}>
               <Button icon={<UploadOutlined/>}>Click to upload</Button>
             </Upload>
